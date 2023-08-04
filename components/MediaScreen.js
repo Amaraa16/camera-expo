@@ -75,28 +75,76 @@ export default function MediaScreen() {
     );
   }
 
+  async function HandleUpload() {
+    const photo = selectedPhotos[0];
+
+    const info = await MediaLibrary.getAssetInfoAsync(photo);
+
+    console.log({ info });
+
+    const data = new FormData();
+    data.append("file", { uri: info.localUri, name: info.filename });
+    data.append("upload_preset", "gqbxephi");
+    data.append("cloud_name", "dh9qpg5a9");
+
+    fetch("https://api.cloudinary.com/v1_1/dh9qpg5a9/upload", {
+      method: "post",
+      body: data,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("data", data.secure_url);
+      })
+      .catch((err) => {
+        console.log("Error");
+      });
+  }
+
   return (
-    <FlatList
-      onEndReached={loadMorePhotos}
-      numColumns={3}
-      data={photos}
-      renderItem={({ item, index }) => (
-        <ImageItem
-          onSelect={() => setSelectedPhotos([...selectedPhotos, item])}
-          onRemove={() =>
-            setSelectedPhotos(
-              selectedPhotos.filter((selected) => selected.id !== item.id)
-            )
-          }
-          selected={
-            selectedPhotos.findIndex((selected) => selected.id === item.id) + 1
-          }
-          photo={item}
-          index={index}
-        />
+    <View style={{ position: "relative", flex: 1 }}>
+      <FlatList
+        onEndReached={loadMorePhotos}
+        numColumns={3}
+        data={photos}
+        renderItem={({ item, index }) => (
+          <ImageItem
+            onSelect={() => setSelectedPhotos([...selectedPhotos, item])}
+            onRemove={() =>
+              setSelectedPhotos(
+                selectedPhotos.filter((selected) => selected.id !== item.id)
+              )
+            }
+            selected={
+              selectedPhotos.findIndex((selected) => selected.id === item.id) +
+              1
+            }
+            photo={item}
+            index={index}
+          />
+        )}
+        keyExtractor={(item) => item.uri}
+      />
+
+      {selectedPhotos.length > 0 && (
+        <TouchableOpacity
+          onPress={HandleUpload}
+          style={{
+            position: "absolute",
+            width: 380,
+            height: 50,
+            backgroundColor: "black",
+            bottom: 20,
+            left: 20,
+            right: 20,
+            borderRadius: 20,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ color: "white", padding: 20 }}>upload</Text>
+        </TouchableOpacity>
       )}
-      keyExtractor={(item) => item.uri}
-    />
+    </View>
   );
 }
 
