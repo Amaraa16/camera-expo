@@ -1,12 +1,33 @@
 import { Camera, CameraType } from "expo-camera";
 import { useRef, useState } from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Button, StyleSheet, Text, TouchableOpacity, View, Animated } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 
 export default function CameraScreen() {
   const [type, setType] = useState(CameraType.back);
   const [blackBgr, setBlackBgr] = useState(false);
   const [permission, requestPermission] = Camera.useCameraPermissions();
+  const [ratioExpanded, setRatioExpanded] = useState(false);
+
+  const ratioWidth = useRef(new Animated.Value(100)).current;
+
+  function expand() {
+    setRatioExpanded(true);
+    Animated.timing(ratioWidth, {
+      toValue: 200,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }
+
+  function shrink() {
+    setRatioExpanded(false);
+    Animated.timing(ratioWidth, {
+      toValue: 100,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }
 
   const cameraRef = useRef();
 
@@ -19,18 +40,14 @@ export default function CameraScreen() {
     // Camera permissions are not granted yet
     return (
       <View style={styles.container}>
-        <Text style={{ textAlign: "center" }}>
-          We need your permission to show the camera
-        </Text>
+        <Text style={{ textAlign: "center" }}>We need your permission to show the camera</Text>
         <Button onPress={requestPermission} title="grant permission" />
       </View>
     );
   }
 
   function toggleCameraType() {
-    setType((current) =>
-      current === CameraType.back ? CameraType.front : CameraType.back
-    );
+    setType((current) => (current === CameraType.back ? CameraType.front : CameraType.back));
   }
 
   async function takePicture() {
@@ -56,6 +73,11 @@ export default function CameraScreen() {
             opacity: blackBgr ? 1 : 0,
           }}
         ></View>
+        <TouchableOpacity activeOpacity={0.8} onPress={() => (ratioExpanded ? shrink() : expand())}>
+          <Animated.View style={{ borderRadius: 20, backgroundColor: "rgba(255,255,255,0.4)", width: ratioWidth, padding: 20, margin: 20, alignItems: "center" }}>
+            <Text style={{ color: "white" }}>4 : 3</Text>
+          </Animated.View>
+        </TouchableOpacity>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
             <Text style={styles.text}>Flip Camera</Text>
